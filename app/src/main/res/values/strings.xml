@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">پرچین Parchin</string>
+    <string name="title">پرچین</string>
+    <string name="status_ok">مسدودسازی فعال است</string>
+    <string name="status_off">مسدودسازی خاموش است</string>
+    <string name="status_warn">هنوز فعال نشده؛ دکمه‌ی زیر را بزنید</string>
+    <string name="btn_enable">فعال‌سازی مسدودسازی تماس</string>
+    <string name="section_list">پیش‌شماره‌های مسدود شده</string>
+    <string name="count_fmt">%s مورد</string>
+    <string name="empty">هنوز پیش‌شماره‌ای اضافه نشده است.</string>
+    <string name="hint">مثلاً 942</string>
+    <string name="btn_add">افزودن</string>
+    <string name="helper">عدد بعد از +98 را وارد کنید (۳ تا ۶ رقم). صفر ابتدایی خودکار حذف می‌شود.</string>
+    <string name="preview">پیش‌نمایش:</string>
+    <string name="dup">این پیش‌شماره قبلاً اضافه شده است.</string>
+    <string name="delete">حذف</string>
+    <string name="section_settings">تنظیمات</string>
+    <string name="set_enabled">مسدودسازی تماس</string>
+    <string name="set_enabled_d">با خاموش کردن، هیچ تماسی مسدود نمی‌شود.</string>
+    <string name="set_contacts">مخاطبین ذخیره‌شده مسدود نشوند</string>
+    <string name="set_contacts_d">اگر شماره در مخاطبین باشد، تماس برقرار می‌شود. نیازمند مجوز مخاطبین.</string>
+    <string name="set_log">ثبت در تاریخچه‌ی تماس‌ها</string>
+    <string name="set_log_d">تماس‌های مسدودشده در لیست تماس‌ها نمایش داده شوند.</string>
+    <string name="set_notify">اعلان تماس مسدودشده</string>
+    <string name="set_notify_d">برای هر تماس مسدودشده یک اعلان نمایش داده شود.</string>
+    <string name="perm_contacts_denied">مجوز مخاطبین داده نشد.</string>
+    <string name="perm_notif_denied">مجوز اعلان داده نشد.</string>
+    <string name="role_unavailable">این دستگاه از این قابلیت پشتیبانی نمی‌کند.</string>
+    <string name="footer">فقط تماس‌های ورودی مسدود می‌شوند.\nپرچین نرم‌افزار آزاد و متن‌باز است (مجوز MIT).</string>
+    <string name="notif_title">تماس مسدود شد</string>
+    <string name="notif_channel">تماس‌های مسدودشده</string>
+</resources>
