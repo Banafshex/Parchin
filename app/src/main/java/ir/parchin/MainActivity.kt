@@ -2,6 +2,7 @@ package ir.parchin
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
 import android.app.role.RoleManager
 import android.content.ComponentName
 import android.content.pm.PackageManager
@@ -28,7 +29,6 @@ class MainActivity : Activity() {
     private lateinit var regular: Typeface
     private lateinit var bold: Typeface
 
-    private lateinit var statusCard: View
     private lateinit var statusDot: View
     private lateinit var statusText: TextView
     private lateinit var btnEnable: Button
@@ -39,11 +39,17 @@ class MainActivity : Activity() {
     private lateinit var btnAdd: Button
     private lateinit var preview: View
     private lateinit var previewNumber: TextView
-    private lateinit var settings: LinearLayout
-    private lateinit var swContacts: Switch
-    private lateinit var swNotify: Switch
 
     private var silent = false
+    private var settingsDialog: AlertDialog? = null
+    private var swContacts: Switch? = null
+    private var swNotify: Switch? = null
+
+    // مقادیر مرحله‌ای پنجره تنظیمات؛ فقط با زدن «اعمال تغییرات» ذخیره می‌شوند
+    private var stagedEnabled = false
+    private var stagedContacts = false
+    private var stagedLog = false
+    private var stagedNotify = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,7 +58,6 @@ class MainActivity : Activity() {
         bold = resources.getFont(R.font.vazirmatn_bold)
         setContentView(R.layout.activity_main)
 
-        statusCard = findViewById(R.id.statusCard)
         statusDot = findViewById(R.id.statusDot)
         statusText = findViewById(R.id.statusText)
         btnEnable = findViewById(R.id.btnEnable)
@@ -63,9 +68,8 @@ class MainActivity : Activity() {
         btnAdd = findViewById(R.id.btnAdd)
         preview = findViewById(R.id.preview)
         previewNumber = findViewById(R.id.previewNumber)
-        settings = findViewById(R.id.settingsList)
 
-        buildSettings()
+        findViewById<View>(R.id.btnSettings).setOnClickListener { showSettings() }
 
         etPrefix.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
@@ -111,45 +115,82 @@ class MainActivity : Activity() {
         refreshStatus()
     }
 
-    // ---------- تنظیمات ----------
+    override fun onDestroy() {
+        settingsDialog?.dismiss()
+        super.onDestroy()
+    }
 
-    private fun buildSettings() {
-        addRow(R.string.set_enabled, R.string.set_enabled_d, store.enabled) {
-            store.enabled = it
-            refreshStatus()
+    // ---------- تنظیمات (پنجره) ----------
+
+    private fun showSettings() {
+        val view = layoutInflater.inflate(R.layout.dialog_settings, null, false)
+        val settings = view.findViewById<LinearLayout>(R.id.settingsList)
+
+        stagedEnabled = store.enabled
+        stagedContacts = store.skipContacts
+        stagedLog = store.logCalls
+        stagedNotify = store.notify
+
+        addRow(settings, R.string.set_enabled, R.string.set_enabled_d, stagedEnabled) {
+            stagedEnabled = it
         }
 
         swContacts = addRow(
-            R.string.set_contacts, R.string.set_contacts_d,
-            store.skipContacts && hasPermission(Manifest.permission.READ_CONTACTS)
+            settings, R.string.set_contacts, R.string.set_contacts_d,
+            stagedContacts && hasPermission(Manifest.permission.READ_CONTACTS)
         ) { on ->
             if (on && !hasPermission(Manifest.permission.READ_CONTACTS)) {
-                setChecked(swContacts, false)
+                setChecked(swContacts!!, false)
                 requestPermissions(arrayOf(Manifest.permission.READ_CONTACTS), RC_CONTACTS)
-            } else store.skipContacts = on
+            } else stagedContacts = on
         }
 
-        addRow(R.string.set_log, R.string.set_log_d, store.logCalls) { store.logCalls = it }
+        addRow(settings, R.string.set_log, R.string.set_log_d, stagedLog) {
+            stagedLog = it
+        }
 
-        swNotify = addRow(R.string.set_notify, R.string.set_notify_d, store.notify) { on ->
+        swNotify = addRow(
+            settings, R.string.set_notify, R.string.set_notify_d,
+            stagedNotify && (Build.VERSION.SDK_INT < 33 ||
+                hasPermission(Manifest.permission.POST_NOTIFICATIONS))
+        ) { on ->
             if (on && Build.VERSION.SDK_INT >= 33 &&
                 !hasPermission(Manifest.permission.POST_NOTIFICATIONS)
             ) {
-                setChecked(swNotify, false)
+                setChecked(swNotify!!, false)
                 requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), RC_NOTIF)
-            } else store.notify = on
+            } else stagedNotify = on
         }
+
+        fonts(view)
+
+        val dialog = AlertDialog.Builder(this).setView(view).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        view.findViewById<Button>(R.id.btnCancel).setOnClickListener { dialog.dismiss() }
+        view.findViewById<Button>(R.id.btnApply).setOnClickListener {
+            store.enabled = stagedEnabled
+            store.skipContacts = stagedContacts
+            store.logCalls = stagedLog
+            store.notify = stagedNotify
+            refreshStatus()
+            dialog.dismiss()
+        }
+        settingsDialog = dialog
+        dialog.show()
     }
 
-    private fun addRow(title: Int, desc: Int, checked: Boolean, onToggle: (Boolean) -> Unit): Switch {
-        val row = layoutInflater.inflate(R.layout.item_setting, settings, false)
+    private fun addRow(
+        parent: LinearLayout, title: Int, desc: Int, checked: Boolean,
+        onToggle: (Boolean) -> Unit
+    ): Switch {
+        val row = layoutInflater.inflate(R.layout.item_setting, parent, false)
         row.findViewById<TextView>(R.id.tvTitle).setText(title)
         row.findViewById<TextView>(R.id.tvDesc).setText(desc)
         val sw = row.findViewById<Switch>(R.id.sw)
         sw.isChecked = checked
         sw.setOnCheckedChangeListener { _, v -> if (!silent) onToggle(v) }
         row.setOnClickListener { sw.toggle() }
-        settings.addView(row)
+        parent.addView(row)
         return sw
     }
 
@@ -168,12 +209,12 @@ class MainActivity : Activity() {
         val granted = results.isNotEmpty() && results[0] == PackageManager.PERMISSION_GRANTED
         when (code) {
             RC_CONTACTS -> if (granted) {
-                store.skipContacts = true
-                setChecked(swContacts, true)
+                stagedContacts = true
+                swContacts?.let { setChecked(it, true) }
             } else toast(R.string.perm_contacts_denied)
             RC_NOTIF -> if (granted) {
-                store.notify = true
-                setChecked(swNotify, true)
+                stagedNotify = true
+                swNotify?.let { setChecked(it, true) }
             } else toast(R.string.perm_notif_denied)
         }
     }
@@ -210,18 +251,15 @@ class MainActivity : Activity() {
     private fun refreshStatus() {
         val held = roleHeld()
         updateLauncherIcon(held && store.enabled)
-        val bg: Int
-        val fg: Int
-        val dot: Int
+        val neon: Int
         val text: Int
         when {
-            !held -> { bg = 0xFFFFF3E0.toInt(); fg = 0xFFE65100.toInt(); dot = 0xFFFF9800.toInt(); text = R.string.status_warn }
-            !store.enabled -> { bg = 0xFFECEFF1.toInt(); fg = 0xFF546E7A.toInt(); dot = 0xFF90A4AE.toInt(); text = R.string.status_off }
-            else -> { bg = 0xFFE8F5E9.toInt(); fg = 0xFF2E7D32.toInt(); dot = 0xFF4CAF50.toInt(); text = R.string.status_ok }
+            !held -> { neon = 0xFFFCEE0A.toInt(); text = R.string.status_warn }
+            !store.enabled -> { neon = 0xFF8A9BB5.toInt(); text = R.string.status_off }
+            else -> { neon = 0xFF00FF9D.toInt(); text = R.string.status_ok }
         }
-        statusCard.background.mutate().setTint(bg)
-        statusDot.background.mutate().setTint(dot)
-        statusText.setTextColor(fg)
+        statusDot.background.mutate().setTint(neon)
+        statusText.setTextColor(neon)
         statusText.setText(text)
         btnEnable.visibility = if (held) View.GONE else View.VISIBLE
     }
@@ -235,7 +273,7 @@ class MainActivity : Activity() {
         for (p in items) {
             val v = layoutInflater.inflate(R.layout.item_prefix, list, false)
             val s = SpannableString("+98$p")
-            s.setSpan(ForegroundColorSpan(Color.parseColor("#1565C0")), 0, 3, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            s.setSpan(ForegroundColorSpan(Color.parseColor("#00F0FF")), 0, 3, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             v.findViewById<TextView>(R.id.tvNumber).text = s
             v.findViewById<View>(R.id.btnDelete).setOnClickListener {
                 store.remove(p)

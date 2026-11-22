@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">پرچین Parchin</string>
     <string name="title">پرچین</string>
+    <string name="subtitle">PARCHIN // CYBER SHIELD</string>
     <string name="status_ok">مسدودسازی فعال است</string>
     <string name="status_off">مسدودسازی خاموش است</string>
     <string name="status_warn">هنوز فعال نشده؛ دکمه‌ی زیر را بزنید</string>
@@ -16,6 +16,10 @@
     <string name="dup">این پیش‌شماره قبلاً اضافه شده است.</string>
     <string name="delete">حذف</string>
     <string name="section_settings">تنظیمات</string>
+    <string name="settings_desc">تنظیمات</string>
+    <string name="settings_hint">تغییرات فقط پس از زدن «اعمال تغییرات» ذخیره می‌شوند.</string>
+    <string name="btn_apply">اعمال تغییرات</string>
+    <string name="btn_cancel">انصراف</string>
     <string name="set_enabled">مسدودسازی تماس</string>
     <string name="set_enabled_d">با خاموش کردن، هیچ تماسی مسدود نمی‌شود.</string>
     <string name="set_contacts">مخاطبین ذخیره‌شده مسدود نشوند</string>
