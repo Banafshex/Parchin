@@ -40,11 +40,10 @@
             android:textSize="11sp" />
     </LinearLayout>
 
+    <!-- تراک/شستی سوییچ از طریق کد ست می‌شود (این دو اتریبیوت در XML خصوصی‌اند) -->
     <Switch
         android:id="@+id/sw"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:thumbDrawable="@drawable/bg_switch_thumb"
-        android:trackDrawable="@drawable/bg_switch_track" />
+        android:layout_marginStart="10dp" />
 </LinearLayout>

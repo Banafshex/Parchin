@@ -187,6 +187,8 @@ class MainActivity : Activity() {
         row.findViewById<TextView>(R.id.tvTitle).setText(title)
         row.findViewById<TextView>(R.id.tvDesc).setText(desc)
         val sw = row.findViewById<Switch>(R.id.sw)
+        sw.trackDrawable = getDrawable(R.drawable.bg_switch_track)
+        sw.thumbDrawable = getDrawable(R.drawable.bg_switch_thumb)
         sw.isChecked = checked
         sw.setOnCheckedChangeListener { _, v -> if (!silent) onToggle(v) }
         row.setOnClickListener { sw.toggle() }
