@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="60dp"
     android:background="?android:attr/selectableItemBackground"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:padding="14dp">
+    android:paddingHorizontal="10dp">
 
     <LinearLayout
         android:layout_width="0dp"
@@ -15,24 +15,35 @@
 
         <TextView
             android:id="@+id/tvTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="#263238"
-            android:textSize="14sp"
+            android:layout_width="match_parent"
+            android:layout_height="22dp"
+            android:autoSizeMaxTextSize="13sp"
+            android:autoSizeMinTextSize="10sp"
+            android:autoSizeTextType="uniform"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tvDesc"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="22dp"
             android:layout_marginTop="2dp"
-            android:textColor="#78909C"
+            android:autoSizeMaxTextSize="11sp"
+            android:autoSizeMinTextSize="8sp"
+            android:autoSizeTextType="uniform"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/text_secondary"
             android:textSize="11sp" />
     </LinearLayout>
 
+    <!-- تراک/شستی سوییچ از طریق کد ست می‌شود (این دو اتریبیوت در XML خصوصی‌اند) -->
     <Switch
         android:id="@+id/sw"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp" />
+        android:layout_marginStart="10dp" />
 </LinearLayout>
