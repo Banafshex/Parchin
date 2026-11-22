@@ -8,6 +8,12 @@ import android.content.ComponentName
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.Typeface
+import android.animation.ValueAnimator
+import android.media.AudioAttributes
+import android.media.AudioManager
+import android.media.SoundPool
+import android.provider.Settings
+import android.view.MotionEvent
 import android.os.Build
 import android.os.Bundle
 import android.text.Editable
@@ -40,6 +46,19 @@ class MainActivity : Activity() {
     private lateinit var preview: View
     private lateinit var previewNumber: TextView
 
+    private lateinit var background: CyberBackgroundView
+    private lateinit var listArea: View
+    private lateinit var pagination: View
+    private lateinit var previous: Button
+    private lateinit var next: Button
+    private lateinit var pageLabel: TextView
+    private var page = 0
+    private var pageSize = 1
+    private var resumed = false
+    private var sounds: SoundPool? = null
+    private var tapSound = 0
+    private var addSound = 0
+
     private var silent = false
     private var settingsDialog: AlertDialog? = null
     private var swContacts: Switch? = null
@@ -58,6 +77,31 @@ class MainActivity : Activity() {
         bold = resources.getFont(R.font.vazirmatn_bold)
         setContentView(R.layout.activity_main)
 
+        background = findViewById(R.id.cyberBackground)
+        listArea = findViewById(R.id.listArea)
+        pagination = findViewById(R.id.pagination)
+        previous = findViewById(R.id.btnPrevious)
+        next = findViewById(R.id.btnNext)
+        pageLabel = findViewById(R.id.pageLabel)
+        sounds = SoundPool.Builder().setMaxStreams(2).setAudioAttributes(
+            AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
+        ).build().also {
+            tapSound = it.load(this, R.raw.cyber_tap, 1)
+            addSound = it.load(this, R.raw.cyber_add, 1)
+        }
+        listArea.addOnLayoutChangeListener { _, _, top, _, bottom, _, oldTop, _, oldBottom ->
+            if (bottom - top != oldBottom - oldTop) {
+                val rowHeight = (56 * resources.displayMetrics.density + 0.5f).toInt()
+                val newSize = ((bottom - top) / rowHeight).coerceAtLeast(1)
+                if (newSize != pageSize) { pageSize = newSize; renderList() }
+            }
+        }
+        previous.setOnClickListener { playSound(); if (page > 0) { page--; renderList() } }
+        next.setOnClickListener { playSound(); page++; renderList() }
+        animatePress(previous)
+        animatePress(next)
+
         statusDot = findViewById(R.id.statusDot)
         statusText = findViewById(R.id.statusText)
         btnEnable = findViewById(R.id.btnEnable)
@@ -69,7 +113,12 @@ class MainActivity : Activity() {
         preview = findViewById(R.id.preview)
         previewNumber = findViewById(R.id.previewNumber)
 
-        findViewById<View>(R.id.btnSettings).setOnClickListener { showSettings() }
+        findViewById<View>(R.id.btnSettings).apply {
+            animatePress(this)
+            setOnClickListener { playSound(); showSettings() }
+        }
+        animatePress(btnAdd)
+        animatePress(btnEnable)
 
         etPrefix.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
@@ -90,11 +139,19 @@ class MainActivity : Activity() {
         btnAdd.setOnClickListener {
             val p = Prefix.clean(etPrefix.text.toString())
             if (p.length !in Prefix.MIN..Prefix.MAX) return@setOnClickListener
-            if (!store.add(p)) toast(R.string.dup) else renderList()
+            if (!store.add(p)) {
+                playSound()
+                toast(R.string.dup)
+            } else {
+                playSound(add = true)
+                page = (store.prefixes().size - 1) / pageSize
+                renderList()
+            }
             etPrefix.setText("")
         }
 
         btnEnable.setOnClickListener {
+            playSound()
             val rm = getSystemService(RoleManager::class.java)
             if (!rm.isRoleAvailable(RoleManager.ROLE_CALL_SCREENING)) {
                 toast(R.string.role_unavailable)
@@ -112,12 +169,48 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        resumed = true
+        background.setRunning(hasWindowFocus())
         refreshStatus()
+    }
+
+    override fun onPause() {
+        resumed = false
+        background.setRunning(false)
+        super.onPause()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (::background.isInitialized) background.setRunning(resumed && hasFocus)
     }
 
     override fun onDestroy() {
         settingsDialog?.dismiss()
+        sounds?.release()
+        sounds = null
         super.onDestroy()
+    }
+
+    private fun playSound(add: Boolean = false) {
+        // Follow Android's touch-sound setting and silent/vibrate mode.
+        if (Settings.System.getInt(contentResolver, Settings.System.SOUND_EFFECTS_ENABLED, 0) == 0) return
+        val audio = getSystemService(AudioManager::class.java)
+        if (audio.ringerMode != AudioManager.RINGER_MODE_NORMAL) return
+        sounds?.play(if (add) addSound else tapSound, 0.35f, 0.35f, 1, 0, 1f)
+    }
+
+    private fun animatePress(view: View) {
+        view.isSoundEffectsEnabled = false // use the short, system-setting-aware cyber sound instead
+        view.setOnTouchListener { v, event ->
+            if (ValueAnimator.areAnimatorsEnabled()) {
+                when (event.actionMasked) {
+                    MotionEvent.ACTION_DOWN -> v.animate().scaleX(.96f).scaleY(.96f).setDuration(90).start()
+                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> v.animate().scaleX(1f).scaleY(1f).setDuration(150).start()
+                }
+            }
+            false // preserve normal clicks, ripple, accessibility and scrolling
+        }
     }
 
     // ---------- تنظیمات (پنجره) ----------
@@ -166,14 +259,28 @@ class MainActivity : Activity() {
 
         val dialog = AlertDialog.Builder(this).setView(view).create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-        view.findViewById<Button>(R.id.btnCancel).setOnClickListener { dialog.dismiss() }
-        view.findViewById<Button>(R.id.btnApply).setOnClickListener {
-            store.enabled = stagedEnabled
-            store.skipContacts = stagedContacts
-            store.logCalls = stagedLog
-            store.notify = stagedNotify
-            refreshStatus()
-            dialog.dismiss()
+        view.findViewById<Button>(R.id.btnCancel).apply {
+            animatePress(this)
+            setOnClickListener { playSound(); dialog.dismiss() }
+        }
+        view.findViewById<Button>(R.id.btnApply).apply {
+            animatePress(this)
+            setOnClickListener {
+                playSound()
+                store.enabled = stagedEnabled
+                store.skipContacts = stagedContacts
+                store.logCalls = stagedLog
+                store.notify = stagedNotify
+                refreshStatus()
+                dialog.dismiss()
+            }
+        }
+        dialog.setOnDismissListener {
+            if (settingsDialog === dialog) {
+                settingsDialog = null
+                swContacts = null
+                swNotify = null
+            }
         }
         settingsDialog = dialog
         dialog.show()
@@ -189,8 +296,10 @@ class MainActivity : Activity() {
         val sw = row.findViewById<Switch>(R.id.sw)
         sw.trackDrawable = getDrawable(R.drawable.bg_switch_track)
         sw.thumbDrawable = getDrawable(R.drawable.bg_switch_thumb)
+        sw.isSoundEffectsEnabled = false
+        row.isSoundEffectsEnabled = false
         sw.isChecked = checked
-        sw.setOnCheckedChangeListener { _, v -> if (!silent) onToggle(v) }
+        sw.setOnCheckedChangeListener { _, v -> if (!silent) { playSound(); onToggle(v) } }
         row.setOnClickListener { sw.toggle() }
         parent.addView(row)
         return sw
@@ -256,9 +365,9 @@ class MainActivity : Activity() {
         val neon: Int
         val text: Int
         when {
-            !held -> { neon = 0xFFFCEE0A.toInt(); text = R.string.status_warn }
-            !store.enabled -> { neon = 0xFF8A9BB5.toInt(); text = R.string.status_off }
-            else -> { neon = 0xFF00FF9D.toInt(); text = R.string.status_ok }
+            !held -> { neon = 0xFFB9E878.toInt(); text = R.string.status_warn }
+            !store.enabled -> { neon = 0xFF91AAB0.toInt(); text = R.string.status_off }
+            else -> { neon = 0xFFA7EB8C.toInt(); text = R.string.status_ok }
         }
         statusDot.background.mutate().setTint(neon)
         statusText.setTextColor(neon)
@@ -272,14 +381,25 @@ class MainActivity : Activity() {
         list.removeAllViews()
         val items = store.prefixes()
         empty.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
-        for (p in items) {
+        val pages = ((items.size + pageSize - 1) / pageSize).coerceAtLeast(1)
+        page = page.coerceIn(0, pages - 1)
+        pagination.visibility = if (pages > 1) View.VISIBLE else View.INVISIBLE
+        previous.isEnabled = page > 0
+        next.isEnabled = page < pages - 1
+        pageLabel.text = getString(R.string.page_fmt, (page + 1).toPersianDigits(), pages.toPersianDigits())
+        for (p in items.drop(page * pageSize).take(pageSize)) {
             val v = layoutInflater.inflate(R.layout.item_prefix, list, false)
             val s = SpannableString("+98$p")
-            s.setSpan(ForegroundColorSpan(Color.parseColor("#00F0FF")), 0, 3, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            s.setSpan(ForegroundColorSpan(Color.parseColor("#63E3D8")), 0, 3, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
             v.findViewById<TextView>(R.id.tvNumber).text = s
-            v.findViewById<View>(R.id.btnDelete).setOnClickListener {
-                store.remove(p)
-                renderList()
+            v.findViewById<View>(R.id.btnDelete).apply {
+                contentDescription = getString(R.string.delete_number, "+98$p")
+                animatePress(this)
+                setOnClickListener {
+                    playSound()
+                    store.remove(p)
+                    renderList()
+                }
             }
             fonts(v)
             list.addView(v)

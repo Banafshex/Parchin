@@ -1,43 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginBottom="6dp"
-    android:background="@drawable/bg_cyber_card"
-    android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:padding="10dp">
-
-    <ImageView
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:background="@drawable/bg_cyber_icon_red"
-        android:importantForAccessibility="no"
-        android:padding="6dp"
-        android:src="@drawable/ic_phone_neon" />
-
-    <TextView
-        android:id="@+id/tvNumber"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layoutDirection="ltr"
-        android:textColor="@color/text_primary"
-        android:textDirection="ltr"
-        android:textSize="16sp"
-        android:textStyle="bold" />
-
-    <View
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:layout_weight="1" />
-
-    <ImageView
-        android:id="@+id/btnDelete"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:background="?android:attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/delete"
-        android:padding="6dp"
-        android:src="@drawable/ic_close_neon" />
+    android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginBottom="4dp"
+    android:background="@drawable/bg_cyber_card" android:gravity="center_vertical" android:orientation="horizontal" android:paddingHorizontal="8dp">
+    <ImageView android:layout_width="34dp" android:layout_height="34dp" android:background="@drawable/bg_cyber_icon"
+        android:importantForAccessibility="no" android:padding="8dp" android:src="@drawable/ic_phone_neon" />
+    <TextView android:id="@+id/tvNumber" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+        android:layout_marginStart="10dp" android:gravity="center_vertical" android:layoutDirection="ltr" android:textDirection="ltr"
+        android:textColor="@color/text_primary" android:textSize="16sp" android:textStyle="bold" android:maxLines="1"
+        android:autoSizeTextType="uniform" android:autoSizeMinTextSize="11sp" android:autoSizeMaxTextSize="16sp" />
+    <Button android:id="@+id/btnDelete" android:layout_width="68dp" android:layout_height="38dp" android:minWidth="0dp" android:minHeight="0dp"
+        android:background="@drawable/bg_cyber_btn_ghost" android:foreground="?android:attr/selectableItemBackground"
+        android:text="@string/delete" android:textColor="@color/cyan" android:textSize="12sp" android:paddingHorizontal="4dp"
+        android:autoSizeTextType="uniform" android:autoSizeMinTextSize="9sp" android:autoSizeMaxTextSize="12sp" android:maxLines="1" />
 </LinearLayout>

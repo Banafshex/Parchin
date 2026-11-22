@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">پرچین Parchin</string>
     <string name="title">پرچین</string>
-    <string name="subtitle">PARCHIN // CYBER SHIELD</string>
+    <string name="subtitle">PARCHIN / CYBER SHIELD</string>
     <string name="status_ok">مسدودسازی فعال است</string>
     <string name="status_off">مسدودسازی خاموش است</string>
     <string name="status_warn">هنوز فعال نشده؛ دکمه‌ی زیر را بزنید</string>
@@ -34,4 +34,13 @@
     <string name="footer">فقط تماس‌های ورودی مسدود می‌شوند.\nپرچین نرم‌افزار آزاد و متن‌باز است (مجوز MIT).</string>
     <string name="notif_title">تماس مسدود شد</string>
     <string name="notif_channel">تماس‌های مسدودشده</string>
+    <string name="system_label">SYSTEM / SHIELD</string>
+    <string name="system_id">PCH · 01</string>
+    <string name="status_caption">پایش تماس‌های ورودی</string>
+    <string name="input_label">افزودن پیش‌شماره جدید</string>
+    <string name="helper_short">۳ تا ۶ رقم بعد از +98</string>
+    <string name="previous">قبلی</string>
+    <string name="next">بعدی</string>
+    <string name="page_fmt">صفحه %1$s از %2$s</string>
+    <string name="delete_number">حذف پیش‌شماره %1$s</string>
 </resources>

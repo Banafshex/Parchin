@@ -1,17 +1,17 @@
 <resources>
     <!-- پالت سایبرپانک: پس‌زمینه تیره + نئون فیروزه‌ای/سرخابی -->
-    <color name="primary">#00F0FF</color>
-    <color name="primary_dark">#050510</color>
-    <color name="bg">#050510</color>
-    <color name="panel">#0D0D1F</color>
-    <color name="card">#0F0F23</color>
-    <color name="cyan">#00F0FF</color>
-    <color name="magenta">#FF2E97</color>
-    <color name="yellow">#FCEE0A</color>
-    <color name="green">#00FF9D</color>
-    <color name="red">#FF2E63</color>
+    <color name="primary">#63E3D8</color>
+    <color name="primary_dark">#050C13</color>
+    <color name="bg">#050C13</color>
+    <color name="panel">#0A1620</color>
+    <color name="card">#0C1B25</color>
+    <color name="cyan">#63E3D8</color>
+    <color name="magenta">#9E95E9</color>
+    <color name="yellow">#B9E878</color>
+    <color name="green">#A7EB8C</color>
+    <color name="red">#C0AEDF</color>
     <color name="text_primary">#E8F6FF</color>
-    <color name="text_secondary">#8A9BB5</color>
-    <color name="launcher_blue">#050510</color>
-    <color name="launcher_red">#050510</color>
+    <color name="text_secondary">#91AAB0</color>
+    <color name="launcher_blue">#050C13</color>
+    <color name="launcher_red">#050C13</color>
 </resources>
